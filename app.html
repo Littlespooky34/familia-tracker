@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#0a0a0f">
+<title>FamiliaTrack</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a0f;
+    --bg2: #12121a;
+    --bg3: #1a1a28;
+    --accent: #4fffb0;
+    --accent2: #ff4f8b;
+    --sos: #ff3b30;
+    --text: #f0f0ff;
+    --muted: #6b6b8a;
+    --card: rgba(255,255,255,0.04);
+    --border: rgba(255,255,255,0.08);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    min-height: 100dvh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+  }
+
+  /* Grid noise background */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: 
+      radial-gradient(ellipse 80% 60% at 50% -20%, rgba(79,255,176,0.08) 0%, transparent 60%),
+      linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+    background-size: 100% 100%, 40px 40px, 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    max-width: 420px;
+    margin: 0 auto;
+    padding: 24px 20px 40px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    min-height: 100dvh;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 0;
+  }
+  .logo {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.3rem;
+    letter-spacing: -0.5px;
+  }
+  .logo span { color: var(--accent); }
+  .status-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--muted);
+    transition: all 0.3s;
+    box-shadow: 0 0 0 0 var(--accent);
+  }
+  .status-dot.online {
+    background: var(--accent);
+    animation: pulse-dot 2s infinite;
+  }
+  @keyframes pulse-dot {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(79,255,176,0.4); }
+    50% { box-shadow: 0 0 0 6px rgba(79,255,176,0); }
+  }
+
+  /* ── SETUP CARD (nombre) ── */
+  .setup-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 28px 24px;
+    backdrop-filter: blur(10px);
+  }
+  .setup-card h2 {
+    font-family: 'Syne', sans-serif;
+    font-size: 1.1rem;
+    font-weight: 700;
+    margin-bottom: 6px;
+  }
+  .setup-card p {
+    color: var(--muted);
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+    line-height: 1.5;
+  }
+  .input-group {
+    display: flex;
+    gap: 10px;
+  }
+  input[type="text"] {
+    flex: 1;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 14px 16px;
+    color: var(--text);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 1rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  input[type="text"]:focus { border-color: var(--accent); }
+  input[type="text"]::placeholder { color: var(--muted); }
+
+  .btn {
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .btn:active { transform: scale(0.96); }
+
+  .btn-primary {
+    background: var(--accent);
+    color: #000;
+    padding: 14px 20px;
+    font-size: 0.9rem;
+  }
+  .btn-primary:hover { background: #6fffc0; }
+
+  /* ── PROFILE ── */
+  .profile {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 20px;
+  }
+  .avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.1rem;
+    color: #000;
+    flex-shrink: 0;
+  }
+  .profile-info { flex: 1; }
+  .profile-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 1rem;
+  }
+  .profile-sub {
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin-top: 2px;
+  }
+  .btn-change {
+    background: rgba(255,255,255,0.06);
+    color: var(--muted);
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    font-size: 0.75rem;
+  }
+
+  /* ── LOCATION CARD ── */
+  .location-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  .loc-status {
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+  }
+  .loc-icon {
+    width: 46px; height: 46px;
+    border-radius: 14px;
+    background: rgba(79,255,176,0.1);
+    border: 1px solid rgba(79,255,176,0.2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.3rem;
+    flex-shrink: 0;
+  }
+  .loc-text {}
+  .loc-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 700;
+    font-size: 0.95rem;
+    margin-bottom: 4px;
+  }
+  .loc-coords {
+    font-size: 0.78rem;
+    color: var(--muted);
+    font-family: monospace;
+    letter-spacing: 0.5px;
+  }
+  .loc-time {
+    font-size: 0.78rem;
+    color: var(--muted);
+    margin-top: 3px;
+  }
+
+  .btn-send {
+    background: var(--accent);
+    color: #000;
+    padding: 16px;
+    font-size: 1rem;
+    border-radius: 14px;
+    width: 100%;
+  }
+
+  /* ── AUTO SEND TOGGLE ── */
+  .auto-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 16px 20px;
+  }
+  .auto-info {}
+  .auto-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 600;
+    font-size: 0.9rem;
+  }
+  .auto-sub {
+    color: var(--muted);
+    font-size: 0.78rem;
+    margin-top: 3px;
+  }
+  .toggle {
+    position: relative;
+    width: 48px; height: 26px;
+    flex-shrink: 0;
+  }
+  .toggle input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute;
+    cursor: pointer;
+    inset: 0;
+    background: rgba(255,255,255,0.1);
+    border-radius: 26px;
+    transition: 0.3s;
+    border: 1px solid var(--border);
+  }
+  .slider::before {
+    content: '';
+    position: absolute;
+    height: 18px; width: 18px;
+    left: 3px; bottom: 3px;
+    background: var(--muted);
+    border-radius: 50%;
+    transition: 0.3s;
+  }
+  input:checked + .slider { background: rgba(79,255,176,0.2); border-color: var(--accent); }
+  input:checked + .slider::before { transform: translateX(22px); background: var(--accent); }
+
+  /* ── SOS BUTTON ── */
+  .sos-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .sos-label {
+    font-family: 'Syne', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--muted);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 0 4px;
+  }
+  .btn-sos {
+    background: transparent;
+    border: 2px solid var(--sos);
+    color: var(--sos);
+    padding: 20px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    border-radius: 18px;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+    transition: all 0.2s;
+  }
+  .btn-sos::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--sos);
+    opacity: 0;
+    transition: opacity 0.2s;
+  }
+  .btn-sos:hover::before, .btn-sos:active::before { opacity: 0.1; }
+  .btn-sos.active {
+    background: var(--sos);
+    color: #fff;
+    animation: sos-pulse 0.5s ease-in-out 3;
+  }
+  @keyframes sos-pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.02); }
+  }
+  .btn-sos span { position: relative; z-index: 1; }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 14px 20px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    z-index: 100;
+    max-width: 300px;
+    white-space: nowrap;
+    backdrop-filter: blur(10px);
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+  .toast.success { border-color: rgba(79,255,176,0.4); }
+  .toast.error { border-color: rgba(255,59,48,0.4); }
+
+  /* ── HIDDEN ── */
+  .hidden { display: none !important; }
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- Header -->
+  <div class="header">
+    <div class="logo">Familia<span>Track</span></div>
+    <div class="status-dot" id="statusDot"></div>
+  </div>
+
+  <!-- Setup: ingresar nombre -->
+  <div class="setup-card" id="setupCard">
+    <h2>¿Cómo te llamas?</h2>
+    <p>Tu nombre aparecerá cuando compartas ubicación con la familia.</p>
+    <div class="input-group">
+      <input type="text" id="nameInput" placeholder="Ej: Mamá, Juan..." maxlength="20">
+      <button class="btn btn-primary" onclick="saveName()">OK</button>
+    </div>
+  </div>
+
+  <!-- Perfil (después de guardar nombre) -->
+  <div class="profile hidden" id="profileCard">
+    <div class="avatar" id="avatarEl"></div>
+    <div class="profile-info">
+      <div class="profile-name" id="profileName"></div>
+      <div class="profile-sub">Miembro familiar</div>
+    </div>
+    <button class="btn btn-change" onclick="changeName()">Cambiar</button>
+  </div>
+
+  <!-- Card de ubicación -->
+  <div class="location-card hidden" id="locationCard">
+    <div class="loc-status">
+      <div class="loc-icon">📍</div>
+      <div class="loc-text">
+        <div class="loc-title" id="locTitle">Obteniendo ubicación...</div>
+        <div class="loc-coords" id="locCoords">—</div>
+        <div class="loc-time" id="locTime"></div>
+      </div>
+    </div>
+    <button class="btn btn-send" onclick="sendLocation(false)" id="sendBtn">
+      📤 Enviar al grupo familiar
+    </button>
+  </div>
+
+  <!-- Auto-envío -->
+  <div class="auto-row hidden" id="autoRow">
+    <div class="auto-info">
+      <div class="auto-title">Auto-compartir</div>
+      <div class="auto-sub">Enviar cada 30 min mientras la app esté abierta</div>
+    </div>
+    <label class="toggle">
+      <input type="checkbox" id="autoToggle" onchange="toggleAuto()">
+      <span class="slider"></span>
+    </label>
+  </div>
+
+  <!-- SOS -->
+  <div class="sos-section hidden" id="sosSection">
+    <div class="sos-label">⚠️ Emergencia</div>
+    <button class="btn-sos" id="sosBtn" onclick="sendSOS()">
+      <span>🆘 BOTÓN DE EMERGENCIA</span>
+    </button>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+const API = window.location.origin;
+let userName = localStorage.getItem('familiatrack_name') || '';
+let currentLocation = null;
+let autoInterval = null;
+let watchId = null;
+
+// ── INIT ──────────────────────────────────────────────────────────────────
+window.onload = () => {
+  if (userName) {
+    showApp();
+    startWatchingLocation();
+  }
+};
+
+// ── NOMBRE ────────────────────────────────────────────────────────────────
+function saveName() {
+  const val = document.getElementById('nameInput').value.trim();
+  if (!val) return;
+  userName = val;
+  localStorage.setItem('familiatrack_name', userName);
+  showApp();
+  startWatchingLocation();
+}
+
+function changeName() {
+  document.getElementById('setupCard').classList.remove('hidden');
+  document.getElementById('profileCard').classList.add('hidden');
+  document.getElementById('nameInput').value = userName;
+}
+
+function showApp() {
+  document.getElementById('setupCard').classList.add('hidden');
+  document.getElementById('profileCard').classList.remove('hidden');
+  document.getElementById('locationCard').classList.remove('hidden');
+  document.getElementById('autoRow').classList.remove('hidden');
+  document.getElementById('sosSection').classList.remove('hidden');
+  
+  document.getElementById('profileName').textContent = userName;
+  document.getElementById('avatarEl').textContent = userName.charAt(0).toUpperCase();
+  document.getElementById('statusDot').classList.add('online');
+}
+
+// ── GPS ───────────────────────────────────────────────────────────────────
+function startWatchingLocation() {
+  if (!navigator.geolocation) {
+    document.getElementById('locTitle').textContent = 'GPS no disponible';
+    return;
+  }
+
+  watchId = navigator.geolocation.watchPosition(
+    (pos) => {
+      currentLocation = {
+        latitude: pos.coords.latitude,
+        longitude: pos.coords.longitude,
+        accuracy: pos.coords.accuracy
+      };
+      document.getElementById('locTitle').textContent = '✅ Ubicación lista';
+      document.getElementById('locCoords').textContent =
+        `${pos.coords.latitude.toFixed(5)}, ${pos.coords.longitude.toFixed(5)}`;
+      document.getElementById('locTime').textContent =
+        `Precisión: ~${Math.round(pos.coords.accuracy)}m`;
+    },
+    (err) => {
+      document.getElementById('locTitle').textContent = '⚠️ Permiso denegado';
+      document.getElementById('locCoords').textContent = 'Activa el GPS y permite acceso';
+    },
+    { enableHighAccuracy: true, maximumAge: 30000 }
+  );
+}
+
+// ── ENVIAR UBICACIÓN ──────────────────────────────────────────────────────
+async function sendLocation(isSOS = false) {
+  if (!currentLocation) {
+    showToast('⚠️ Esperando GPS...', 'error');
+    return;
+  }
+
+  const btn = document.getElementById(isSOS ? 'sosBtn' : 'sendBtn');
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(`${API}/api/location`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: userName,
+        latitude: currentLocation.latitude,
+        longitude: currentLocation.longitude,
+        isSOS
+      })
+    });
+
+    if (res.ok) {
+      const data = await res.json();
+      showToast(
+        isSOS ? '🚨 Alerta enviada a la familia' : '✅ Ubicación enviada',
+        'success'
+      );
+      document.getElementById('locTime').textContent = `Enviado: ${data.timestamp}`;
+      if (isSOS) {
+        btn.classList.add('active');
+        setTimeout(() => btn.classList.remove('active'), 2000);
+      }
+    } else {
+      throw new Error('Server error');
+    }
+  } catch (e) {
+    showToast('❌ Error al enviar. Revisa tu conexión.', 'error');
+  } finally {
+    setTimeout(() => btn.disabled = false, 3000);
+  }
+}
+
+// ── SOS ───────────────────────────────────────────────────────────────────
+function sendSOS() {
+  // Confirmar antes de enviar
+  if (confirm('⚠️ ¿Confirmas que es una EMERGENCIA?\nSe alertará a toda la familia.')) {
+    sendLocation(true);
+  }
+}
+
+// ── AUTO ENVÍO ────────────────────────────────────────────────────────────
+function toggleAuto() {
+  const isOn = document.getElementById('autoToggle').checked;
+  if (isOn) {
+    sendLocation(false); // Enviar inmediatamente
+    autoInterval = setInterval(() => sendLocation(false), 30 * 60 * 1000); // cada 30 min
+    showToast('⏰ Auto-compartir activado', 'success');
+  } else {
+    clearInterval(autoInterval);
+    autoInterval = null;
+    showToast('Auto-compartir desactivado', '');
+  }
+}
+
+// ── TOAST ─────────────────────────────────────────────────────────────────
+function showToast(msg, type = '') {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.className = `toast ${type} show`;
+  setTimeout(() => t.classList.remove('show'), 3000);
+}
+</script>
+</body>
+</html>
